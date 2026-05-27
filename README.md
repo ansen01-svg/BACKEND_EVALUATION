@@ -12,15 +12,14 @@ frontend/  → Next.js 15 + TypeScript + Tailwind + shadcn/ui + RTK Query
 ## Quick Start
 
 ### Prerequisites
+
 - Node.js 18+
-- Docker & Docker Compose (for MongoDB + Redis)
+- MongoDB
+- Redis
+- MongoDB URI (Example: `mongodb+srv://username:password@cluster.mongodb.net/database_name?retryWrites=true&w=majority`)
 
-### 1. Start Infrastructure
-```bash
-docker-compose up -d
-```
+### 1. Backend
 
-### 2. Backend
 ```bash
 cd backend
 npm install
@@ -29,7 +28,8 @@ npm run seed      # seeds sample data + prints JWT tokens
 npm run dev       # starts on http://localhost:5000
 ```
 
-### 3. Frontend
+### 2. Frontend
+
 ```bash
 cd frontend
 npm install
@@ -38,16 +38,17 @@ npm run dev       # starts on http://localhost:3000
 
 ## API Endpoints
 
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| POST | `/api/auth/login` | Public | Get JWT token |
-| POST | `/api/products` | Internal | Register a new product |
-| POST | `/api/products/:id/events` | Internal | Append lifecycle event |
-| GET | `/api/products/:id` | All | Product with full event history |
-| GET | `/api/products` | All | List with filters + cursor pagination |
-| GET | `/api/products/:id/verify` | All | Verify event chain integrity |
+| Method | Endpoint                   | Auth     | Description                           |
+| ------ | -------------------------- | -------- | ------------------------------------- |
+| POST   | `/api/auth/login`          | Public   | Get JWT token                         |
+| POST   | `/api/products`            | Internal | Register a new product                |
+| POST   | `/api/products/:id/events` | Internal | Append lifecycle event                |
+| GET    | `/api/products/:id`        | All      | Product with full event history       |
+| GET    | `/api/products`            | All      | List with filters + cursor pagination |
+| GET    | `/api/products/:id/verify` | All      | Verify event chain integrity          |
 
 ### Filters on GET /products
+
 - `status` — filter by current lifecycle status
 - `partnerId` — filter by partner (auto-applied for partner role)
 - `fromDate` / `toDate` — creation date range
@@ -57,21 +58,27 @@ npm run dev       # starts on http://localhost:3000
 ## Design Decisions
 
 ### Blockchain-Like Event Chain
+
 Each event contains a SHA-256 hash computed from its data + the previous event's hash, forming a tamper-evident chain identical in concept to a blockchain. The `/verify` endpoint walks the full chain and recomputes every hash to detect tampering.
 
 ### Append-Only Enforcement
+
 Immutability is enforced at the Mongoose schema level — `updateOne`, `findOneAndUpdate`, `deleteOne`, `findOneAndDelete`, and `deleteMany` all throw errors. This is defense-in-depth beyond just omitting routes.
 
 ### Cursor-Based Pagination
+
 Skip/offset pagination degrades at O(n) for large collections. Cursor pagination using `_id` comparison is O(1) with an index, critical for 100k+ products.
 
 ### Denormalized `currentStatus`
+
 Product stores the latest status to avoid aggregating all events for list queries. Updated atomically when a new event is appended.
 
 ### Race Condition Protection
+
 Event appends use MongoDB transactions + unique compound index on `(productId, sequenceNumber)` to prevent duplicate sequence numbers under concurrent writes.
 
 ### Rate Limiting
+
 Redis-backed rate limiting with `rate-limiter-flexible`. Partners: 100 req/min. Internal: 1000 req/min.
 
 ## Assumptions
