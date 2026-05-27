@@ -1,6 +1,11 @@
 # Dependencies
 node_modules/
 
+# Environment variables
+.env
+.env.*
+!.env.example
+
 # Logs
 logs/
 *.log
@@ -40,16 +45,20 @@ temp/
 .idea/
 *.swp
 *.swo
+.DS_Store
+Thumbs.db
 
 # Testing
 .nyc_output/
+jest.config.js.snap
 
-# Uploads
+# Uploads (if applicable)
 uploads/
 public/uploads/
 
 # PM2
 .pm2/
+pids/
 
 # Docker
 docker-compose.override.yml
@@ -58,7 +67,7 @@ docker-compose.override.yml
 .DS_Store
 Thumbs.db
 
-# Local DB files
+# Local database files
 *.sqlite
 *.sqlite3
 

@@ -42,7 +42,7 @@ export const apiSlice = createApi({
   baseQuery: axiosBaseQuery({
     baseUrl: `${process.env.NEXT_PUBLIC_API_URL}`,
   }),
-  tagTypes: ["App", "User"],
+  tagTypes: ["App", "User", "Products", "Partners"],
   endpoints: () => ({}),
   refetchOnReconnect: true,
 });
